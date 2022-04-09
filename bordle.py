@@ -1,17 +1,28 @@
 #!/usr/bin/env python3
+######################################################################
+#
+# edge cases:
+# - guessed the word
+# - guessed the word on last guess
+# - failed to guess the word and ran out of guesses
+# - guessed too short word
+# - guessed too long word
+# - guessed non-word
+#
+######################################################################
 import random
 import sys
 
 WORDS='/usr/share/dict/words'
 WORD_LENGTH = 5
-MAX_GUESSES = 5
+MAX_GUESSES = 6
 
 class Keyboard:
     def __init__(self):
         self.keyboard = [['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', ],
                          ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ],
                          ['z', 'x', 'c', 'v', 'b', 'n', 'm', ]]
-    
+
     def remove_key(self, letter):
         for key_row in self.keyboard:
             for i, key in enumerate(key_row):
@@ -73,18 +84,11 @@ class Bordle:
         self.keyboard.print()
 
     def validate_guess(self, guess):
-        if guess == self.the_word:
-            print('Well done!')
-            # TODO: display needs to know if the correct word
         if guess == 'giveup':
             print(f'YOU LOSE!  The word was {self.the_word}')
             sys.exit(1)
         if guess == 'reci mi':
             print(self.the_word)
-        if self.num_guesses == MAX_GUESSES:
-            print('Wah wah.  So close!')
-            print(f'the word was: {self.the_word}')
-            sys.exit(1)
         if len(guess) > WORD_LENGTH:
             print(f'{guess} is too long, try again')
         elif len(guess) < WORD_LENGTH:
@@ -94,12 +98,22 @@ class Bordle:
         else:
             return True
         return False
-        
+
+    def check_if_done(self):
+        if self.num_guesses == MAX_GUESSES:
+            print('Wah wah.  So close!')
+            print(f'the word was: {self.the_word}')
+            sys.exit(1)
+        if self.guesses[self.num_guesses - 1] == self.the_word:
+            print('Well done!')
+            sys.exit(0)
+
 
 def main(args):
     bordle = Bordle()
     while True:
         bordle.display_grid()
+        bordle.check_if_done()
         try:
             guess = input('guess a word: ')
         except KeyboardInterrupt:
