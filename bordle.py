@@ -66,6 +66,14 @@ class Bordle:
                 guess += ' '
             self.guesses.append(guess)
 
+    # TODO: be more helpful with the hints, like wordle is, I think.
+    # For example, if you guess a word with repeating letters, and you
+    # have the repeated letter in the correct space and in a wrong
+    # space, don't indicate that the letter is correct but in the
+    # wrong place.
+    #
+    # lets say the word is trips if you guess title, currently this
+    # code will show both t's as valid letters when it shouldn't
     def display_grid(self):
         for guess_id in range(MAX_GUESSES):
             print('    ', end='')
