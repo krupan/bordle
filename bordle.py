@@ -10,12 +10,11 @@
 # - guessed non-word
 #
 ######################################################################
+import argparse
 import random
 import sys
 
 WORDS='/usr/share/dict/words'
-WORD_LENGTH = 5
-MAX_GUESSES = 6
 
 class Keyboard:
     def __init__(self):
@@ -41,28 +40,36 @@ class Keyboard:
 
 
 class Bordle:
-    def __init__(self):
+    def __init__(self, length, max_guesses):
         print("correct letter, wrong place: -X-")
         print("correct letter, correct place: *X*")
         self.words = []
         self.the_word = ''
         self.guesses = []
-        self.num_guesses = 0
         self.keyboard = Keyboard()
+        self.num_guesses = 0
+        self.word_length = 5
+        self.max_guesses = self.word_length + 1
+        if length:
+            self.word_length = length
+            if max_guesses:
+                self.max_guesses = max_guesses
+            else:
+                self.max_guesses = self.word_length + 1
 
         with open(WORDS) as words_file:
             for word in words_file:
                 word = word.rstrip()
-                if len(word) == WORD_LENGTH \
+                if len(word) == self.word_length \
                    and not word[0].isupper() \
                    and "'" not in word:
                     self.words.append(word)
         assert len(self.words)
         self.the_word = random.choice(self.words)
-        assert len(self.the_word) == WORD_LENGTH
-        for i in range(MAX_GUESSES):
+        assert len(self.the_word) == self.word_length
+        for i in range(self.max_guesses):
             guess = ''
-            for j in range(WORD_LENGTH):
+            for j in range(self.word_length):
                 guess += ' '
             self.guesses.append(guess)
 
@@ -75,9 +82,9 @@ class Bordle:
     # lets say the word is trips if you guess title, currently this
     # code will show both t's as valid letters when it shouldn't
     def display_grid(self):
-        for guess_id in range(MAX_GUESSES):
+        for guess_id in range(self.max_guesses):
             print('    ', end='')
-            for letter_id in range(WORD_LENGTH):
+            for letter_id in range(self.word_length):
                 letter = self.guesses[guess_id][letter_id]
                 if letter == self.the_word[letter_id]:
                     print(f'|*{letter}*', end='')
@@ -86,7 +93,7 @@ class Bordle:
                 else:
                     print(f'| {letter} ', end='')
                     self.keyboard.remove_key(letter)
-                if letter_id == WORD_LENGTH - 1:
+                if letter_id == self.word_length - 1:
                     print('|', end='')
             print()
         self.keyboard.print()
@@ -97,9 +104,9 @@ class Bordle:
             sys.exit(1)
         if guess == 'reci mi':
             print(self.the_word)
-        if len(guess) > WORD_LENGTH:
+        if len(guess) > self.word_length:
             print(f'{guess} is too long, try again')
-        elif len(guess) < WORD_LENGTH:
+        elif len(guess) < self.word_length:
             print(f'{guess} is too short, try again')
         elif guess not in self.words:
             print(f'{guess} is not in the word list, try again')
@@ -108,7 +115,7 @@ class Bordle:
         return False
 
     def check_if_done(self):
-        if self.num_guesses == MAX_GUESSES:
+        if self.num_guesses == self.max_guesses:
             print('Wah wah.  So close!')
             print(f'the word was: {self.the_word}')
             sys.exit(1)
@@ -117,8 +124,18 @@ class Bordle:
             sys.exit(0)
 
 
+def parse_args(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-l', '--word-length', type=int, action='store',
+                        help='length of word, defaults to 5 letters')
+    parser.add_argument('-g', '--max-guesses', type=int, action='store',
+                        help='max number of guesses, defaults to '
+                        'word-length plus 1')
+    return parser.parse_args()
+
+
 def main(args):
-    bordle = Bordle()
+    bordle = Bordle(args.word_length, args.max_guesses)
     while True:
         bordle.display_grid()
         bordle.check_if_done()
@@ -134,4 +151,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    sys.exit(main([]))
+    sys.exit(main(parse_args(sys.argv)))
