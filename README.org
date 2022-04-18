@@ -1,0 +1,13 @@
+* Bordle
+
+Hi, I'm Bryan and this is my version of wordle, bordle.  It is text-only.  It defaults to 5-letter words and 6 guesses like wordle, but you can also specify any size word and any number of guesses.  Words are chosen from =/usr/share/dict/words=.  Run:
+
+#+begin_src sh
+  ./bordle.py --help
+#+end_src
+
+To see the options, or to run it like plain wordle, just run:
+
+#+begin_src sh
+  ./bordle.py
+#+end_src
