@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
 ######################################################################
 #
-# edge cases:
-# - guessed the word
-# - guessed the word on last guess
-# - failed to guess the word and ran out of guesses
-# - guessed too short word
-# - guessed too long word
-# - guessed non-word
+# Copyright 2022 Bryan Murdock
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see
+# <https://www.gnu.org/licenses/>.
 #
 ######################################################################
 import argparse
@@ -40,7 +48,7 @@ class Keyboard:
 
 
 class Bordle:
-    def __init__(self, length, max_guesses):
+    def __init__(self, length, max_guesses, word):
         print("correct letter, wrong place: -X-")
         print("correct letter, correct place: *X*")
         self.words = []
@@ -57,16 +65,22 @@ class Bordle:
             else:
                 self.max_guesses = self.word_length + 1
 
-        with open(WORDS) as words_file:
-            for word in words_file:
-                word = word.rstrip()
-                if len(word) == self.word_length \
-                   and not word[0].isupper() \
-                   and "'" not in word:
-                    self.words.append(word)
-        assert len(self.words)
-        self.the_word = random.choice(self.words)
-        assert len(self.the_word) == self.word_length
+        if not word:
+            with open(WORDS) as words_file:
+                for word in words_file:
+                    word = word.rstrip()
+                    if len(word) == self.word_length \
+                       and not word[0].isupper() \
+                       and "'" not in word:
+                        self.words.append(word)
+            assert len(self.words)
+            self.the_word = random.choice(self.words)
+        else:
+            self.the_word = word
+        if len(self.the_word) != self.word_length:
+            print(f'ERROR: chosen word, {self.the_word} is not '
+                  f'{self.word_length} letters long')
+            sys.exit(1)
         for i in range(self.max_guesses):
             guess = ''
             for j in range(self.word_length):
@@ -81,14 +95,20 @@ class Bordle:
     #
     # lets say the word is trips if you guess title, currently this
     # code will show both t's as valid letters when it shouldn't
+    #
+    # I think I just need to temporarily remove the guesses letter
+    # from the_word if it's found.  It might be nice to decouple this
+    # from display_grid, but not now.
     def display_grid(self):
         for guess_id in range(self.max_guesses):
+            temp_the_word = list(self.the_word)
             print('    ', end='')
             for letter_id in range(self.word_length):
                 letter = self.guesses[guess_id][letter_id]
-                if letter == self.the_word[letter_id]:
+                if letter == temp_the_word[letter_id]:
                     print(f'|*{letter}*', end='')
-                elif letter in self.the_word:
+                    temp_the_word[letter_id] = ' '
+                elif letter in temp_the_word:
                     print(f'|-{letter}-', end='')
                 else:
                     print(f'| {letter} ', end='')
@@ -131,11 +151,14 @@ def parse_args(args):
     parser.add_argument('-g', '--max-guesses', type=int, action='store',
                         help='max number of guesses, defaults to '
                         'word-length plus 1')
+    parser.add_argument('-w', '--word', type=str, action='store',
+                        help=f'the secret word, default is a randomly chosen '
+                        'word from {WORDS}')
     return parser.parse_args()
 
 
 def main(args):
-    bordle = Bordle(args.word_length, args.max_guesses)
+    bordle = Bordle(args.word_length, args.max_guesses, args.word)
     while True:
         bordle.display_grid()
         bordle.check_if_done()
