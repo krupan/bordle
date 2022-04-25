@@ -24,17 +24,34 @@ import sys
 
 WORDS='/usr/share/dict/words'
 
+# shamelessly taken from: https://stackoverflow.com/a/61960902/27729
+def colored(r, g, b, text):
+    return f"\033[38;2;{r};{g};{b}m{text}\033[38;2;255;255;255m"
+
+
+def red(text):
+    return colored(255, 0, 0, text)
+
+
+def green(text):
+    return colored(0, 255, 0, text)
+
+
+def yellow(text):
+    return colored(255, 255, 0, text)
+
+
 class Keyboard:
     def __init__(self):
         self.keyboard = [['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', ],
                          ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ],
                          ['z', 'x', 'c', 'v', 'b', 'n', 'm', ]]
 
-    def remove_key(self, letter):
+    def color_key(self, color, letter):
         for key_row in self.keyboard:
             for i, key in enumerate(key_row):
                 if letter == key:
-                    key_row[i] =  '_'
+                    key_row[i] = color(key)
 
     def print(self):
         for i, key_row in enumerate(self.keyboard):
@@ -106,13 +123,15 @@ class Bordle:
             for letter_id in range(self.word_length):
                 letter = self.guesses[guess_id][letter_id]
                 if letter == temp_the_word[letter_id]:
-                    print(f'|*{letter}*', end='')
+                    print(f'| {green(letter)} ', end='')
                     temp_the_word[letter_id] = ' '
+                    self.keyboard.color_key(green, letter)
                 elif letter in temp_the_word:
-                    print(f'|-{letter}-', end='')
+                    print(f'| {yellow(letter)} ', end='')
+                    self.keyboard.color_key(yellow, letter)
                 else:
                     print(f'| {letter} ', end='')
-                    self.keyboard.remove_key(letter)
+                    self.keyboard.color_key(red, letter)
                 if letter_id == self.word_length - 1:
                     print('|', end='')
             print()
