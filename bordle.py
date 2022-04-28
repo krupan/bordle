@@ -50,7 +50,8 @@ class Keyboard:
     def color_key(self, color, letter):
         for key_row in self.keyboard:
             for i, key in enumerate(key_row):
-                if letter == key:
+                # the or is because a yellow letter could turn green:
+                if letter == key or letter == yellow(key):
                     key_row[i] = color(key)
 
     def print(self):
